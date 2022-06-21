@@ -128,7 +128,7 @@ require_once dirname(__DIR__, 1) . '\supplier\supplier_crud.php';
             `<button type="button" class="btn btn-outline-warning d-flex align-items-center" onclick="javascript: UpdateSupplier(${_id},'${_company}','${_person}','${_sex}','${_phone}','${_address}');" data-toggle="tooltip" data-placement="left" title="Modify this supplier">` +
             '<svg class="bi me-2" width="16" height="16"><use xlink:href="#update_icon" /></svg>' +
             '</button>' +
-            `<button type="button" class="btn btn-outline-danger d-flex align-items-center" onclick="javascript: DeleteSupplier('${_company}',${_id});" data-toggle="tooltip" data-placement="right" data-html='true' title='Caution! Remove this supplier'>` +
+            `<button type="button" class="btn btn-outline-danger d-flex align-items-center" onclick="javascript: DeleteSupplierClick('${_company}',${_id});" data-toggle="tooltip" data-placement="right" data-html='true' title='Caution! Remove this supplier'>` +
             '<svg class="bi me-2" width="16" height="16"><use xlink:href="#delete_icon" /></svg>' +
             '</button>' +
             '</div>' +
@@ -149,25 +149,26 @@ require_once dirname(__DIR__, 1) . '\supplier\supplier_crud.php';
         });
     }
 
-    function DeleteSupplier(company, supp_id) {
-        if (confirm('Confirm to remove ' + company + ' permanently?')) {
-            $.ajax({
-                type: "POST",
-                url: "./supplier/supplier_crud.php",
-                dataType: 'json',
-                data: {
-                    delete: supp_id
-                },
-                success: function(data) {
-                    Retrieve_Suppliers();
-                    if(data['affected_rows'] != 'undefined' && data['affected_rows'] > 0)
-                        Notification("Supplier removed", 'warning');
-                    else    
-                        Notification(data['error'], 'danger');
-                }
-            });
-        } else
-            return false;
+    function DeleteSupplierClick(company, supp_id) {
+        ConfirmDelete('Confirm to remove ' + company + ' as supplier permanently?', DeleteSupplier, supp_id);
+    }
+
+    function DeleteSupplier(supp_id) {
+        $.ajax({
+            type: "POST",
+            url: "./supplier/supplier_crud.php",
+            dataType: 'json',
+            data: {
+                delete: supp_id
+            },
+            success: function(data) {
+                Retrieve_Suppliers();
+                if (data['affected_rows'] != 'undefined' && data['affected_rows'] > 0)
+                    Notification("Supplier removed", 'warning');
+                else
+                    Notification(data['error'], 'danger');
+            }
+        });
     }
 
     function UpdateSupplier(_id, _company, _person, _sex, _phone, _address) {
@@ -228,7 +229,8 @@ require_once dirname(__DIR__, 1) . '\supplier\supplier_crud.php';
                             Notification(response['error'], 'danger');
                             $('#company-form').focus();
                         }
-                    },error:function(e){
+                    },
+                    error: function(e) {
                         console.log(e);
                     }
                 });

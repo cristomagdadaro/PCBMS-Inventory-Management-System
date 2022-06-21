@@ -121,7 +121,7 @@ require_once dirname(__DIR__, 1) . '\product\product_crud.php';
             `<button type="button" class="btn btn-outline-warning d-flex align-items-center" onclick="javascript: UpdateProduct(${_id},'${_name}',${_life},'${_unit}');" data-toggle="tooltip" data-placement="left" title="Modify this product">` +
             '<svg class="bi me-2" width="16" height="16"><use xlink:href="#update_icon" /></svg>' +
             '</button>' +
-            `<button type="button" class="btn btn-outline-danger d-flex align-items-center" onclick="javascript: DeleteProduct('${_name}',${_id});" data-toggle="tooltip" data-placement="right" data-html='true' title='Caution! Remove this product'>` +
+            `<button type="button" class="btn btn-outline-danger d-flex align-items-center" onclick="javascript: DeleteProductClick('${_name}',${_id});" data-toggle="tooltip" data-placement="right" data-html='true' title='Caution! Remove this product'>` +
             '<svg class="bi me-2" width="16" height="16"><use xlink:href="#delete_icon" /></svg>' +
             '</button>' +
             '</div>' +
@@ -142,25 +142,26 @@ require_once dirname(__DIR__, 1) . '\product\product_crud.php';
         });
     }
 
-    function DeleteProduct(prod_name, prod_id) {
-        if (confirm('Confirm to remove ' + prod_name + ' permanently?')) {
-            $.ajax({
-                type: "POST",
-                url: "./product/product_crud.php",
-                dataType: 'json',
-                data: {
-                    delete: prod_id
-                },
-                success: function(data) {
-                    Retrieve_Products();
-                    if(data['affected_rows'] != 'undefined' && data['affected_rows'] > 0)
-                        Notification("Product removed", 'warning');
-                    else    
-                        Notification(data['error'], 'danger');
-                }
-            });
-        } else
-            return false;
+    function DeleteProductClick(prod_name, prod_id) {
+        ConfirmDelete('Confirm to remove ' + prod_name + ' from product list permanently?', DeleteProduct, prod_id);
+    }
+
+    function DeleteProduct(prod_id) {
+        $.ajax({
+            type: "POST",
+            url: "./product/product_crud.php",
+            dataType: 'json',
+            data: {
+                delete: prod_id
+            },
+            success: function(data) {
+                Retrieve_Products();
+                if (data['affected_rows'] != 'undefined' && data['affected_rows'] > 0)
+                    Notification("Product removed", 'warning');
+                else
+                    Notification(data['error'], 'danger');
+            }
+        });
     }
 
     var update_id = -1;
@@ -200,19 +201,19 @@ require_once dirname(__DIR__, 1) . '\product\product_crud.php';
                         update: update_id
                     },
                     success: function(response) {
-                        console.log(JSON.stringify(response));            
+                        console.log(JSON.stringify(response));
                         if (Object.keys(response).length && typeof response['affected_rows'] != "undefined") {
-                            if(response['affected_rows'] > 0){
+                            if (response['affected_rows'] > 0) {
                                 Notification('Product info updated', 'success');
                                 Retrieve_Products();
-                            }else{
+                            } else {
                                 Notification('No changes made', 'info');
                             }
                             $('#reset-newproduct-form-btn').click();
                         } else {
                             Notification(response['error'], 'danger');
                             $('#prod_name_form').focus();
-                        }      
+                        }
                     }
                 });
             } else {

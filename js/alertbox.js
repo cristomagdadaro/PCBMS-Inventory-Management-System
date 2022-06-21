@@ -91,3 +91,35 @@ function CloseNotification() {
         $(this).remove();
     });
 }
+
+function ConfirmDelete(msg, remove_function, _id) {
+    var $content = "<div class='dialog-ovelay'>" +
+        "<div class='dialog'><header>" +
+        " <h3>Caution</h3> " +
+        "<i class='fa fa-close'></i>" +
+        "</header>" +
+        "<div class='dialog-msg'>" +
+        " <p> " + msg + " </p> " +
+        "</div>" +
+        "<footer>" +
+        "<div class='controls'>" +
+        " <button id='true-btn' class='btn btn-sm btn-primary float-right doAction'>Confirm</button> " +
+        " <button class='btn btn-sm btn-danger cancelAction'>Cancel</button> " +
+        "</div>" +
+        "</footer>" +
+        "</div>" +
+        "</div>";
+    $('body').prepend($content);
+    $('.doAction').click(function() {
+        remove_function(_id);
+        $(this).parents('.dialog-ovelay').fadeOut(500, function() {
+            $(this).remove();
+        });
+    });
+    $('.cancelAction, .fa-close').click(function() {
+        $(this).parents('.dialog-ovelay').fadeOut(500, function() {
+            $(this).remove();
+        });
+    });
+
+}

@@ -61,7 +61,7 @@
                 '<use xlink:href="#update_icon" />' +
                 '</svg>' +
                 '</button>' +
-                `<button type="button" class="btn btn-outline-danger d-flex align-items-center" onclick="javascript:DeleteProduct(${ord_id});" data-toggle="tooltip" data-placement="right" data-html="true" title="Caution! Remove this order">` +
+                `<button type="button" class="btn btn-outline-danger d-flex align-items-center" onclick="javascript:DeleteOrderClick(${ord_id});" data-toggle="tooltip" data-placement="right" data-html="true" title="Caution! Remove this order">` +
                 '<svg class="bi me-2" width="16" height="16">' +
                 '<use xlink:href="#delete_icon" />' +
                 '</svg>' +
@@ -102,28 +102,30 @@
             });
         }
 
-        function DeleteProduct(or_id) {
-            if (confirm(`Confirm to delete order no. ${or_id} permanently?`)) {
-                $.ajax({
-                    type: "POST",
-                    url: "./order_crud.php",
-                    dataType: 'json',
-                    data: {
-                        delete: or_id
-                    },
-                    success: function(data) {
-                        Retrieve_Orders();
-                        if (data['affected_rows'] != 'undefined' && data['affected_rows'] > 0)
-                            Notification("Order removed", 'warning');
-                        else
-                            Notification(data['error'], 'danger');
-                    },
-                    error: function(jqXHR, textStatus, errorThrown) {
-                        Notification("Error: Status: " + textStatus + " Message: " + errorThrown, 'danger');
-                    }
-                });
-            } else
-                return false;
+        function DeleteOrderClick(order_id) {
+            ConfirmDelete(`Confirm to remove order no. ${order_id} permanently?`, DeleteOrder, order_id);
+        }
+
+        function DeleteOrder(or_id) {
+            $.ajax({
+                type: "POST",
+                url: "./order_crud.php",
+                dataType: 'json',
+                data: {
+                    delete: or_id
+                },
+                success: function(data) {
+                    Retrieve_Orders();
+                    if (data['affected_rows'] != 'undefined' && data['affected_rows'] > 0)
+                        Notification("Order removed", 'warning');
+                    else
+                        Notification(data['error'], 'danger');
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.log(jqXHR.responseText);
+                    Notification("Error: " + textStatus + " Message: " + errorThrown, 'danger');
+                }
+            });
         }
     </script>
 </div>
