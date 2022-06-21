@@ -1,0 +1,220 @@
+:root {
+    --bg: rgb(5,86,3);
+    --fg: #ffffff;
+    --yellow: rgb(255,224,77);
+    --shadow: rgb(186, 186, 186);
+    --gray: rgb(238, 235, 235);
+}
+
+body {
+    font-family: "Consolas", sans-serif;
+    margin: 0;
+    padding: 0;
+    overflow-y: scroll;
+}
+
+th{
+    background-color: var(--bg);
+    color: var(--fg);
+    text-align: center;
+}
+
+th:hover{
+    background-color: rgb(35, 148, 33);
+}
+
+.front-msg{
+    width: 70%;
+    margin: auto;
+}
+
+.front-msg h1, .front-msg h2, .front-msg p{
+    text-align: center;
+    padding: 0;
+    margin: 0;
+}
+
+.front-msg h1{
+    margin-top: 17%;
+    font-size: 70px;
+}
+
+.front-msg h2{
+    font-size: 30px;
+}
+
+.front-msg p{
+    font-size: 15px;
+    margin-top: 20px;
+}
+
+.text-title{
+    padding: 5px 0 0 5px;
+}
+
+.nav-item{
+    cursor: pointer;
+}
+
+.big-vsu-logo img{
+    position: absolute;
+    width: 30%;
+    max-width: 100px;
+}
+
+#vsu-logo img{
+    left: 40%;
+    top: 18%;
+}
+
+#dcst-logo img{
+    left: 50%;
+    top: 18%;
+}
+
+.action-btn img{
+    width: 20px !important;
+}
+
+.table tr, .table td{
+    padding: 5px !important;
+}
+
+.col-form-label-sm {
+    padding: 0px;
+    margin: 0px;
+}
+
+.navbar .active{
+    color: var(--yellow) !important;
+}
+
+#delivery-datatable table th, #delivery-datatable table td,
+#supplier-datatable table th, #supplier-datatable table td,
+#product-datatable table th, #product-datatable table td{
+    max-width: 150px !important;
+    min-width: 20px !important;
+    width: fit-content !important;
+    overflow: hidden;
+    text-overflow: ellipsis !important;
+}
+
+.input-peso {
+    position: relative;
+    font-size: 20px;
+    color: black;
+}
+.input-peso.left input {
+    padding-left:18px;
+}
+.input-peso:before {
+    position: absolute;
+    content:"₱";
+    right: 100px;
+}
+.input-peso.left:before {
+    left: 5px;
+}
+
+#create-newsupplier-form, #create-newproduct-form{
+    max-width: 400px !important;
+    min-width: 200px !important;
+}
+
+/* #create-newdelivery-form */
+
+#create-newsupplier-form, #create-newproduct-form, #create-newdelivery-form{
+    display: none;
+}
+
+.form-control-plaintext:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+#cashier-content{
+    padding: 10px;
+}
+
+#remaining-products-container, #sales-summary-container{
+    width: 49%;
+    background-color: var(--gray);
+    padding: 5px;
+    -webkit-box-shadow: 0 0 5px 2px var(--shadow);
+    -moz-box-shadow: 0 0 5px 2px var(--shadow);
+    box-shadow: 0 0 5px 2px var(--shadow);
+    overflow-y: auto;
+}
+
+#remaining-products-container{
+    float: left;
+    height: 570px;
+}
+
+#sales-summary-container{
+    float: right;
+}
+
+#remaining-products th,
+#remaining-products tr, 
+#remaining-products td {
+    padding: 3px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#sales-summary th{
+    max-width: 50px;
+    text-align: left;
+}
+
+.col-form-label{
+    padding: 0;
+    text-align: center;
+    width: 100%;
+}
+
+.table{
+    margin: 0;
+}
+
+/* for alertbox */
+.alert {
+    padding: 10px;
+    background-color: #f44336;
+    color: white;
+    opacity: 1;
+    transition: opacity 0.6s;
+    margin-bottom: 15px;
+    position: absolute;
+    right: 15px;
+    z-index: 9999;
+}
+
+.alert.success {
+    background-color: #04AA6D;
+}
+
+.alert.info {
+    background-color: #2196F3;
+}
+
+.alert.warning {
+    background-color: #ff9800;
+}
+
+.closebtn {
+    margin-left: 15px;
+    color: white;
+    font-weight: bold;
+    float: right;
+    font-size: 22px;
+    line-height: 20px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.closebtn:hover {
+    color: black;
+}
+/* for alertbox */
