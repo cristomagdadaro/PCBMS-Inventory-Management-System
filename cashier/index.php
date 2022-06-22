@@ -197,8 +197,9 @@
     <script type="text/javascript">
         window.onload = function() {
             clock();
-            LoadData();
+            //LoadData();
             DropdownProducts();
+
             function clock() {
                 var now = new Date();
                 var TwentyFourHour = now.getHours();
@@ -387,7 +388,7 @@
         }
 
         $(document).on('submit', '#receipt-form', function(e) {
-            if(document.getElementById('received-amount').value < parseFloat(document.getElementById('total-amount').innerText)){
+            if (document.getElementById('received-amount').value < parseFloat(document.getElementById('total-amount').innerText)) {
                 Notification('Insufficient amount received', 'warning');
             } else if (table.childElementCount > 0 && document.getElementById('received-amount').value > 0) {
                 var datetime = (new Date((new Date((new Date(new Date())).toISOString())).getTime() - ((new Date()).getTimezoneOffset() * 60000))).toISOString().slice(0, 19).replace('T', ' ');
@@ -432,8 +433,7 @@
                     success: function(data) {
                         console.log(data);
                         if (typeof data['error'] == 'undefined' && data['affected_rows']) {
-                            Confirm('Success', 'Next customer?', 'Yes', 'No', '');
-                            ClearReceipt();
+                            NextCustomer('Next customer?', ClearReceipt);
                             DropdownProducts();
                         } else {
                             Notification(data['error'], 'danger');
@@ -447,6 +447,38 @@
             }
         });
 
+        function NextCustomer(msg, _function) {
+            var $content = "<div class='dialog-ovelay'>" +
+                "<div class='dialog'><header>" +
+                " <h3>Success</h3> " +
+                "<i class='fa fa-close'></i>" +
+                "</header>" +
+                "<div class='dialog-msg'>" +
+                " <p> " + msg + " </p> " +
+                "</div>" +
+                "<footer>" +
+                "<div class='controls'>" +
+                " <button id='true-btn' class='btn btn-sm btn-primary float-right doAction'>Confirm</button> " +
+                " <button class='btn btn-sm btn-danger cancelAction'>Cancel</button> " +
+                "</div>" +
+                "</footer>" +
+                "</div>" +
+                "</div>";
+            $('body').prepend($content);
+            $('.doAction').click(function() {
+                _function();
+                $(this).parents('.dialog-ovelay').fadeOut(500, function() {
+                    $(this).remove();
+                });
+            });
+            $('.cancelAction, .fa-close').click(function() {
+                $(this).parents('.dialog-ovelay').fadeOut(500, function() {
+                    $(this).remove();
+                });
+            });
+
+        }
+
         function DropdownProducts() {
             $.ajax({
                 type: "POST",
@@ -457,7 +489,7 @@
                 },
                 success: function(data) {
                     console.log(data);
-                    document.getElementById('product-form').innerHTML = data;   
+                    document.getElementById('product-form').innerHTML = data;
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
                     Notification("Error: " + textStatus + " Message: " + errorThrown, 'danger');
