@@ -31,19 +31,13 @@
         require './navbar/navbar.php';
         alertbox();
         ?>
+        <div id="alertmessagebox">
+        </div>
         <div id="purchase-details">
             <div id='scan-product'>
                 <div class="input-group input-group-sm mb-3 ">
                     <label class="col-form-label">Choose Product</label>
                     <select name="product_id[]" onchange="javascript:ProductClick()" id="product-form" class="form-control-sm" style="text-overflow: ellipsis;" required>
-                        <?php $products = get_Products();
-                        if(!$products)
-                            echo "<option value=''>No products avaliable</option>";
-                        else
-                            echo "<option value='' hidden>Choose</option>";
-                        while ($prod = $products->fetch_assoc()) { 
-                            //if($prod["total_qty_sold"] < $prod["initial_qty"]) { ?>
-                                <option value="<?= $prod["prod_id"] ?>"> <?= $prod["prod_name"] ?> </option><?php } //}?>
                     </select>
                 </div>
 
@@ -204,7 +198,7 @@
         window.onload = function() {
             clock();
             LoadData();
-
+            DropdownProducts();
             function clock() {
                 var now = new Date();
                 var TwentyFourHour = now.getHours();
@@ -230,20 +224,20 @@
 
             function LoadData() {
                 var data = [{
-                    "prod_id": 218,
-                    "prod_name": "Chocolate milkshake frappe",
+                    "prod_id": 205,
+                    "prod_name": "Choco Milk",
                     "quantity": 6,
-                    "unit_price": 200
+                    "unit_price": 30
                 }, {
-                    "prod_id": 215,
-                    "prod_name": "Milkshake frappe",
+                    "prod_id": 206,
+                    "prod_name": "Fresh Milk",
                     "quantity": 5,
-                    "unit_price": 300
+                    "unit_price": 25
                 }, {
-                    "prod_id": 204,
-                    "prod_name": "Frappe",
+                    "prod_id": 259,
+                    "prod_name": "Popcorn",
                     "quantity": 8,
-                    "unit_price": 400
+                    "unit_price": 15
                 }];
 
                 var len = data.length;
@@ -284,19 +278,20 @@
 
         function AddRow(i = 0, prod_id, prod_name, quantity, unit_price, amount) {
             var row = table.insertRow(i);
-            var cell1 = row.insertCell(0);
-            var cell2 = row.insertCell(1);
-            var cell3 = row.insertCell(2);
-            var cell4 = row.insertCell(3);
-            var cell5 = row.insertCell(4);
-            var cell6 = row.insertCell(5);
+            var _id = row.insertCell(0);
+            var _product = row.insertCell(1);
+            var _qty = row.insertCell(2);
+            var _unit = row.insertCell(3);
+            var _amount = row.insertCell(4);
+            var _action = row.insertCell(5);
 
-            cell1.innerHTML = prod_id;
-            cell2.innerHTML = prod_name;
-            cell3.innerHTML = quantity;
-            cell4.innerHTML = unit_price;
-            cell5.innerHTML = amount;
-            cell6.innerHTML = '<button type="button" class="btn btn-sm p-0 border-0 mx-auto btn-outline-danger d-flex align-items-center" onclick="RemoveRow(' + amount + ',this)"><svg class="bi me-2" width="16" height="16"><use xlink:href="#cancel_icon" /></svg></button>';
+            _id.innerHTML = `<input type="text" id="item_id_form" value="${prod_id}" class="form-control-plaintext p-0 text-center" name="prod_id[]" readonly/>`;
+            _product.innerHTML = `<input type="text" id="item_id_form" value="${prod_name}" class="form-control-plaintext p-0" name="prod_name[]" readonly/>`;
+            _qty.innerHTML = `<input type="text" id="item_id_form" value="${quantity}" class="form-control-plaintext p-0 text-center" name="quantity[]" readonly/>`;
+            _unit.innerHTML = `<input type="text" id="item_id_form" value="${unit_price}" class="form-control-plaintext p-0 text-center" name="unit_price[]" readonly/>`;;
+            _amount.innerHTML = `<input type="text" id="item_id_form" value="${amount}" class="form-control-plaintext p-0 text-center" name="amount[]" readonly/>`;;
+
+            _action.innerHTML = '<button type="button" class="btn btn-sm p-0 border-0 mx-auto btn-outline-danger d-flex align-items-center" onclick="RemoveRow(' + amount + ',this)"><svg class="bi me-2" width="16" height="16"><use xlink:href="#cancel_icon" /></svg></button>';
         }
 
         function RemoveRow(amount, row) {
@@ -342,34 +337,41 @@
 
         function ProductClick() {
             var product = $("#product-form").children("option").filter(":selected").val();
-            var xhr = new XMLHttpRequest();
-            xhr.open('POST', '../manager/receive/product/product_crud.php', true);
-            xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
-            xhr.onload = function() {
-                if (this.status == 200) {
+            $.ajax({
+                type: "POST",
+                url: "../manager/receive/product/product_crud.php",
+                dataType: 'json',
+                data: {
+                    prod_id: product
+                },
+                success: function(data) {
                     try {
-                        var product = JSON.parse(this.responseText);
-                        prod_id.innerText = product.prod_id;
-                        cp_id.innerText = product.cp_id;
-                        item_id.innerText = product.item_id;
-                        unit_price.innerText = product.unit_price;
-                        if(product.total_qty_sold >= product.initial_qty)
+                        console.log(data);
+                        prod_id.innerText = data[0]['prod_id'];
+                        cp_id.innerText = data[0]['cp_id'];
+                        item_id.innerText = data[0]['item_id'];
+                        unit_price.innerText = data[0]['unit_price'];
+                        if (data['total_qty_sold'] >= data[0]['initial_qty'])
                             remain_stock.innerText = 0;
                         else
-                            remain_stock.innerText = product.initial_qty - product.total_qty_sold;
+                            remain_stock.innerText = data[0]['initial_qty'] - data[0]['total_qty_sold'];
                         document.getElementById('quantity').focus();
                     } catch (e) {
-                        alert('Out of Stock');
+                        Notification("Out of stock", 'danger');
                     }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    Notification("Error: " + textStatus + " Message: " + errorThrown, 'danger');
                 }
-            }
-            xhr.send("prod_id=" + product);
+            });
         }
 
         function ClearReceipt() {
             document.getElementById('vat-value').innerText = 0;
             document.getElementById('subtotal').innerText = 0;
             document.getElementById('total-amount').innerText = 0;
+            document.getElementById('received-amount').value = 0;
+            document.getElementById('change-amount').value = 0;
             $("#receipt-table tr").remove();
         }
 
@@ -385,47 +387,83 @@
         }
 
         $(document).on('submit', '#receipt-form', function(e) {
-            if (table.childElementCount > 0 && document.getElementById('received-amount').value > 0) {
+            if(document.getElementById('received-amount').value < parseFloat(document.getElementById('total-amount').innerText)){
+                Notification('Insufficient amount received', 'warning');
+            } else if (table.childElementCount > 0 && document.getElementById('received-amount').value > 0) {
                 var datetime = (new Date((new Date((new Date(new Date())).toISOString())).getTime() - ((new Date()).getTimezoneOffset() * 60000))).toISOString().slice(0, 19).replace('T', ' ');
                 var user = <?php echo isset($_SESSION['user']) ? $_SESSION['user'] : 0 ?>;
                 var total_amount = document.getElementById('total-amount').innerText;
                 var customer_name = document.getElementById('customer-name').value;
                 var customer_address = document.getElementById('customer-address').value;
-                var product = [];
-                for (var i = 0; i <= table.childElementCount; i++) {
-                    var row = table.childNodes[i];
-                    var cell = [];
-                    for (var j = 0; j < row.childElementCount - 1; j++) {
-                        cell.push(row.childNodes[j].innerText)
-                    }
-                    product.push(cell);
-                }
+                var prod_id = $("input[name='prod_id[]']").map(function() {
+                    return $(this).val();
+                }).get();
+                var prod_name = $("input[name='prod_name[]']").map(function() {
+                    return $(this).val();
+                }).get();
+                var quantity = $("input[name='quantity[]']").map(function() {
+                    return $(this).val();
+                }).get();
+                var unit = $("input[name='unit[]']").map(function() {
+                    return $(this).val();
+                }).get();
+                var amount = $("input[name='amount[]']").map(function() {
+                    return $(this).val();
+                }).get();
 
                 e.preventDefault();
                 $.ajax({
                     method: "POST",
                     url: "sales_crud.php",
+                    dataType: 'json',
                     data: {
                         date_purchase: datetime,
                         customer_name: customer_name ? customer_name : 'unknown',
                         address: customer_address ? customer_address : 'unknown',
                         user_id: user,
                         amount: total_amount,
-                        products: product,
+                        prod_id: prod_id,
+                        prod_name: prod_name,
+                        quantity: quantity,
+                        unit: unit,
+                        amount: amount,
                         newpurchase: true
                     },
                     success: function(data) {
-                        try {
-                            var result = JSON.parse(data);
+                        console.log(data);
+                        if (typeof data['error'] == 'undefined' && data['affected_rows']) {
                             Confirm('Success', 'Next customer?', 'Yes', 'No', '');
                             ClearReceipt();
-                        } catch (e) {
-                            alert(e.message);
+                            DropdownProducts();
+                        } else {
+                            Notification(data['error'], 'danger');
                         }
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        console.log(jqXHR.responseText);
+                        Notification("Error: " + textStatus + " Message: " + errorThrown, 'danger');
                     }
                 });
             }
         });
+
+        function DropdownProducts() {
+            $.ajax({
+                type: "POST",
+                url: "../manager/receive/product/product_crud.php",
+                dataType: 'html',
+                data: {
+                    availableprods: true
+                },
+                success: function(data) {
+                    console.log(data);
+                    document.getElementById('product-form').innerHTML = data;   
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    Notification("Error: " + textStatus + " Message: " + errorThrown, 'danger');
+                }
+            });
+        }
     </script>
 </body>
 

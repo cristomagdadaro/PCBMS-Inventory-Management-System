@@ -85,7 +85,7 @@ if (isset($_GET['logout']) && $_GET['logout'] == 1)
                         },
                         success: function(response) {
                             console.log(response);
-                            if (typeof response[0]['error'] == 'undefined') {
+                            if (typeof response['error'] == 'undefined') {
                                 if (Object.keys(response).length && response['inserted_id'] > 0) {
                                     Notification('Successfully registered', 'success');
                                     $('#close_reg').click();
@@ -94,7 +94,7 @@ if (isset($_GET['logout']) && $_GET['logout'] == 1)
                                     $('#username').focus();
                                 }
                             } else {
-                                Notification(response[0]['error'], 'danger');
+                                Notification(response['error'], 'danger');
                             }
                         },
                         error: function(jqXHR, textStatus, errorThrown) {
@@ -122,18 +122,18 @@ if (isset($_GET['logout']) && $_GET['logout'] == 1)
                             login: true
                         },
                         success: function(response) {
-                            console.log();
-                            if (typeof response[0]['error'] == 'undefined') {
-                                if (Object.keys(response).length && response[0]['user_id'] > 0) {
+                            console.log(response);
+                            if (typeof response['error'] == 'undefined') {
+                                if (response[0]['user_id'] > 0) {
                                     if (response[0]['designation'] == 'Store Manager')
                                         window.location.href = "/manager/dashboard/";
-                                    else if (Object.keys(response).length && response[0]['designation'] == 'Cashier')
+                                    else if (response[0]['designation'] == 'Cashier')
                                         window.location.href = "/cashier/";
                                 } else {
                                     Notification('No username or password found', 'danger');
                                 }
                             } else {
-                                Notification(response[0]['error'], 'danger');
+                                Notification(response['error'], 'danger');
                             }
                         },
                         error: function(jqXHR, textStatus, errorThrown) {

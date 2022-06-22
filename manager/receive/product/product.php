@@ -21,7 +21,7 @@ require_once dirname(__DIR__, 1) . '\product\product_crud.php';
                             <th scope="col">ID</th>
                             <th scope="col">Product</th>
                             <th scope="col">Unit</th>
-                            <th scope="col">Shelf life (days)</th>
+                            <th scope="col">Shelflife (days)</th>
                             <th scope="col">Action</th>
                         </tr>
                     </thead>
@@ -53,7 +53,7 @@ require_once dirname(__DIR__, 1) . '\product\product_crud.php';
                                 </select>
                             </div>
                             <div class="form-outline mb-2">
-                                <label class="form-label col-form-label-sm " for="shelf_life">Shelf Life (days)</label>
+                                <label class="form-label col-form-label-sm " for="shelf_life">Shelflife (days)</label>
                                 <input type="number" id="shelf_life_form" class="form-control-sm" name="shelf_life" />
                             </div>
                             <div class="form-outline mb-2">
@@ -111,7 +111,7 @@ require_once dirname(__DIR__, 1) . '\product\product_crud.php';
             var life = data[i]['shelf_life'];
             var unit = data[i]['unit'];
             var action = ActionButton(id, name, life, unit);
-            t.row.add([id, name, life, unit, action]).draw();
+            t.row.add([id, name, unit, life, action]).draw();
         }
     }
 

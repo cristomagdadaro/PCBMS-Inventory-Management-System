@@ -11,7 +11,7 @@ function orderSupplierClick() {
             contact_person.value = person[0].contact_person + " - " + person[0].phone;
         }
     }
-    xhr.send("company=" + company);
+    xhr.send("company_name=" + company);
 }
 
 function orderProductClick(e) {

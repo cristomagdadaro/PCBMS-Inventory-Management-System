@@ -8,7 +8,6 @@ session_start();
 class User extends DB
 {
     private $table = 'personnel';
-    private $positions = ['Store Manager', 'Cashier'];
 
     function __construct()
     {

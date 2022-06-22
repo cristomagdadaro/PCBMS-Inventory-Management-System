@@ -140,16 +140,6 @@ class Delivery extends DB
         echo json_encode($result);
     }
 
-    static function supplier_dropdown(){
-        $sql = "SELECT * FROM `supplier`;";
-        $result =  DB::$conn_static->query($sql);
-        echo '<select name="company" id="company_form" class="form-control-sm" onchange="javascript: deliverySupplierClick(this);" style="text-overflow: ellipsis;" required>';
-        while($row = $result->fetch_assoc()){
-            echo "<option value='{$row['supp_id']}'>{$row['company']}</option>";
-        }
-        echo '</select>';
-    }
-
     function get_Suppliers()
     {
         $this->sql = "SELECT * FROM `supplier`;";

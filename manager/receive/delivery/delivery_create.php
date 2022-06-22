@@ -2,7 +2,7 @@
 require_once dirname(__DIR__, 1) . '\delivery\delivery_crud.php';
 ?>
 
-<div>
+<div class="container-table fluid">
     <div class="modal-header">
         <h4 class="modal-title" id="newdeliverytitle">New Delivery</h4>
         <h4><?php session_start();
