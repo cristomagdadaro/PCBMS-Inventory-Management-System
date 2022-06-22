@@ -202,7 +202,7 @@ require_once dirname(__DIR__, 1) . '\product\product_crud.php';
                     },
                     success: function(response) {
                         console.log(JSON.stringify(response));
-                        if (Object.keys(response).length && typeof response['affected_rows'] != "undefined") {
+                        if (typeof response['error'] == "undefined") {
                             if (response['affected_rows'] > 0) {
                                 Notification('Product info updated', 'success');
                                 Retrieve_Products();
@@ -230,7 +230,7 @@ require_once dirname(__DIR__, 1) . '\product\product_crud.php';
                     },
                     success: function(response) {
                         console.log(JSON.stringify(response));
-                        if (Object.keys(response).length && response['inserted_id'] > 0) {
+                        if (typeof response['error'] == 'undefined') {
                             Notification('New product created', 'success');
                             Retrieve_Products();
                             $('#reset-newproduct-form-btn').click();

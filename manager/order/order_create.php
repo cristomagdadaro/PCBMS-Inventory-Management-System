@@ -47,7 +47,7 @@
                     </table>
                 </div>
                 <div clas="col" style="padding: 0px; margin: 0px;">
-                    Order by:
+                    Ordered by:
                     <div class="form-group row">
                         <label class="col-sm-2 col-form-label text-right text-truncate" id="personnel-form"><?php echo $_SESSION['name'] ?></label>
                         <div class="col-sm-1">

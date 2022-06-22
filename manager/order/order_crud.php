@@ -193,22 +193,18 @@ class Order extends DB
 }
 
 $O = new Order();
-
 if (isset($_POST['new']) && $_POST['new'] == 'order') {
     $O->CreateOrder($_POST);
 } elseif (isset($_POST['delete'])) {
     $O->Remove_Order($_POST['delete']);
 } elseif (isset($_POST['update'])) {
     $O->Edit_Order($_POST, $_POST['or_id']);
-} elseif (isset($_POST['company'])) {
-    $O->get_Contact_Person($_POST['company']);
-    unset($_POST['company']);
+} elseif (isset($_POST['company_name'])) {
+    $O->get_Contact_Person($_POST['company_name']);
 } elseif (isset($_POST['prod_id'])) {
     $O->get_Product_Info($_POST['prod_id']);
-    unset($_POST['prod_id']);
 } elseif (isset($_POST['or_id'])) {
     $O->get_Order_Info($_POST['or_id']);
-    unset($_POST['or_id']);
 } elseif(isset($_POST['retrieve']) && $_POST['retrieve'] == 'order'){
     $O->Get_All_Order();
 } elseif(isset($_POST['getsuppliers'])){
@@ -216,3 +212,5 @@ if (isset($_POST['new']) && $_POST['new'] == 'order') {
 } elseif(isset($_POST['getproducts'])){
     $O->get_Products();
 }
+
+?>

@@ -6,12 +6,9 @@ function CalculateDetails(e) {
     var amount_form = row.childNodes[8].childNodes[0];
     var quantity_form = row.childNodes[7].childNodes[0];
 
-    if (typeof selling_price_form == 'number' && typeof interest_form == 'number' && typeof amount_form == 'number' && typeof quantity_form == 'number') {
-        selling_price_form.value = (parseFloat((unit_price_form.value * interest_form.value)) + parseFloat(unit_price_form.value)).toFixed(2);
-
-        if (parseFloat(selling_price_form.value) != 0) {
-            amount_form.value = parseFloat(selling_price_form.value * quantity_form.value);
-        }
+    selling_price_form.value = (parseFloat((unit_price_form.value * interest_form.value)) + parseFloat(unit_price_form.value)).toFixed(2);
+    if (parseFloat(selling_price_form.value) != 0) {
+        amount_form.value = parseFloat(selling_price_form.value * quantity_form.value);
     }
 }
 
@@ -28,7 +25,7 @@ function deliverySupplierClick() {
             contact_person.value = person[0].contact_person + " - " + person[0].phone;
         }
     }
-    xhr.send("company=" + company);
+    xhr.send("company_name=" + company);
 }
 
 function dicardChanges() {
@@ -71,7 +68,7 @@ var size = 0;
 var _particulars = '<input type="text" id="particulars_form" class="form-control-sm" name="particulars[]" />';
 var _unit = '<input type="text" id="unit_form" class="form-control-sm" name="unit[]" readonly/>';
 var _unit_price = '<input type="number" step="0.01" class="form-control-sm" id="unit_price_form" name="unit_price[]" onkeyup="javascript:CalculateDetails(this);" onchange="javascript:CalculateDetails(this);" aria-label="Amount (to the nearest dollar)" required>';
-var _sell_price = '<input type="number" step="0.01" class="form-control-sm" id="selling_price_form" name="selling_price[]" aria-label="Amount (to the nearest dollar)" required>';
+var _sell_price = '<input type="number" step="0.01" class="form-control-sm" id="selling_price_form" name="selling_price[]" aria-label="Amount (to the nearest dollar)" required readonly>';
 var _quantity = '<input type="number" id="quantity_form" class="form-control-sm" name="quantity[]" onkeyup="javascript:CalculateDetails(this);" onchange="javascript:CalculateDetails(this);" required />';
 var _amount = '<input type="number" step="0.01" class="form-control-sm" id="amount_form" name="amount[]" onkeyup="javascript:CalculateDetails(this);" onchange="javascript:CalculateDetails(this);" aria-label="Amount (to the nearest dollar)" required>';
 var _interest = '<input type="number" step="0.01" class="form-control-sm" id="interest_form" name="interest[]" value="0.12" onkeyup="javascript:CalculateDetails(this);" onchange="javascript:CalculateDetails(this);">';
@@ -83,7 +80,13 @@ function AddRow() {
     counter++;
     size++;
     _item_id = '<input type="text" id="item_id_form" value="' + counter + '" class="form-control-plaintext text-center" name="item_id[]" readonly/>';
-    t.row.add([_item_id, Options_Str(), _particulars, _unit, _unit_price, _interest, _sell_price, _quantity, _amount, _expiry, _action]).draw(false);
+    t.row.add([_item_id, Options_Str(option_str), _particulars, _unit, _unit_price, _interest, _sell_price, _quantity, _amount, _expiry, _action]).draw(false);
+}
+
+function Options_Str(_options, _prod_id = null, _prod_name = null) {
+    if (_prod_id && _prod_name)
+        return `<select name="product_id[]" onchange="javascript: deliveryProductClick(this)" id="product-form" class="form-control-sm" style="text-overflow: ellipsis;" required><option value='${_prod_id}' selected>${_prod_name}</option>${_options}</select >`;
+    return `<select name="product_id[]" onchange="javascript: deliveryProductClick(this)" id="product-form" class="form-control-sm" style="text-overflow: ellipsis;" required>${_options}</select >`;
 }
 
 function RemoveRow(e) {
@@ -105,33 +108,31 @@ function ClearTable() {
     AddRow();
 }
 
-var option_str = "<option value='' hidden>Choose</option>";
-
-function Options_Str(_prod_id = null, _prod_name = null) {
-    if (_prod_id && _prod_name)
-        return `<select name="product_id[]" onchange="javascript:deliveryProductClick(this)" id="product-form" class="form-control-sm" style="text-overflow: ellipsis;" required><option value='${_prod_id}' selected hidden>${_prod_name}</option>${option_str}</select >`;
-    return `<select name="product_id[]" onchange="javascript:deliveryProductClick(this)" id="product-form" class="form-control-sm" style="text-overflow: ellipsis;" required>${option_str}</select >`;
+function Dropdown_Suppliers(data) {
+    var len = Object.keys(data).length;
+    var supplier_drop = document.getElementById('company_form');
+    for (var i = 0; i < len; i++) {
+        var option = document.createElement("option");
+        option.text = data[i]['company'];
+        option.value = data[i]['supp_id'];
+        supplier_drop.add(option);
+    }
 }
 
 function Retrieve_Suppliers() {
     $.ajax({
         type: "POST",
-        url: "/manager/order/order_crud.php",
+        url: "./delivery/delivery_crud.php",
         dataType: 'json',
         data: {
-            getsuppliers: true
+            getdeliverysuppliers: true
         },
         success: function (data) {
-            var len = Object.keys(data).length;
-            var supplier_drop = document.getElementById('company_form');
-            for (var i = 0; i < len; i++) {
-                var option = document.createElement("option");
-                option.text = data[i]['company'];
-                option.value = data[i]['supp_id'];
-                supplier_drop.add(option);
-            }
-        },error: function(jqXHR, textStatus, errorThrown) { 
-            Notification("Error: Status: "+textStatus+" Message: "+errorThrown, 'danger'); 
+            Dropdown_Suppliers(data);
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.log(jqXHR.responseText);
+            Notification("Error: " + textStatus + " Message: " + errorThrown, 'danger');
         }
     });
 }
@@ -139,21 +140,23 @@ function Retrieve_Suppliers() {
 function Retrieve_Products() {
     $.ajax({
         type: "POST",
-        url: "/manager/order/order_crud.php",
+        url: "./delivery/delivery_crud.php",
         dataType: 'json',
         data: {
             getproducts: true
         },
-        success: function(data) {
+        success: function (data) {
+            console.log(data);
             var len = Object.keys(data).length;
             if (len) {
                 for (var i = 0; i < len; i++) {
                     option_str += `<option value='${data[i]['prod_id']}'>${data[i]['prod_name']}</option>`;
                 }
-                AddRow();
             }
-        },error: function(jqXHR, textStatus, errorThrown) { 
-            Notification("Error: Status: "+textStatus+" Message: "+errorThrown, 'danger'); 
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.log(jqXHR.responseText);
+            Notification("Error: " + textStatus + " Message: " + errorThrown, 'danger');
         }
     });
 }

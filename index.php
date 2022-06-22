@@ -85,19 +85,24 @@ if (isset($_GET['logout']) && $_GET['logout'] == 1)
                         },
                         success: function(response) {
                             console.log(response);
-                            if (Object.keys(response).length && response['inserted_id'] > 0) {
-                                Notification('Successfully registered', 'success');
-                                $('#close_reg').click();
-                            }else{
-                                Notification(response['error'], 'danger');
-                                $('#username').focus();
+                            if (typeof response[0]['error'] == 'undefined') {
+                                if (Object.keys(response).length && response['inserted_id'] > 0) {
+                                    Notification('Successfully registered', 'success');
+                                    $('#close_reg').click();
+                                } else {
+                                    Notification(response['error'], 'danger');
+                                    $('#username').focus();
+                                }
+                            } else {
+                                Notification(response[0]['error'], 'danger');
                             }
                         },
-                        error: function(e){
-                            console.log(e);
+                        error: function(jqXHR, textStatus, errorThrown) {
+                            console.log(jqXHR.responseText);
+                            Notification("Error: " + textStatus + " Message: " + errorThrown, 'danger');
                         }
                     });
-                }else{
+                } else {
                     Notification('Please fill all the required fields', 'warning');
                 }
             });
@@ -105,7 +110,7 @@ if (isset($_GET['logout']) && $_GET['logout'] == 1)
             $("#login-form-btn").click(function() {
                 var username = $("#username-form").val().trim();
                 var password = $("#password-form").val().trim();
-               
+
                 if (username != "" && password != "") {
                     $.ajax({
                         url: '/manager/user/user_crud.php',
@@ -117,21 +122,26 @@ if (isset($_GET['logout']) && $_GET['logout'] == 1)
                             login: true
                         },
                         success: function(response) {
-                            console.log(response);
-                            if (Object.keys(response).length && response[0]['user_id'] > 0) {
-                                if (response[0]['designation'] == 'Store Manager')
-                                    window.location.href = "/manager/dashboard/";
-                                else if (Object.keys(response).length && response[0]['designation'] == 'Cashier')
-                                    window.location.href = "/cashier/";
+                            console.log();
+                            if (typeof response[0]['error'] == 'undefined') {
+                                if (Object.keys(response).length && response[0]['user_id'] > 0) {
+                                    if (response[0]['designation'] == 'Store Manager')
+                                        window.location.href = "/manager/dashboard/";
+                                    else if (Object.keys(response).length && response[0]['designation'] == 'Cashier')
+                                        window.location.href = "/cashier/";
+                                } else {
+                                    Notification('No username or password found', 'danger');
+                                }
                             } else {
-                                Notification('No username or password found', 'danger');
+                                Notification(response[0]['error'], 'danger');
                             }
                         },
-                        error: function(e){
-                            console.log(e);
+                        error: function(jqXHR, textStatus, errorThrown) {
+                            console.log(jqXHR.responseText);
+                            Notification("Error: " + textStatus + " Message: " + errorThrown, 'danger');
                         }
                     });
-                }else{
+                } else {
                     Notification('Please fill all the required fields', 'warning');
                 }
             });

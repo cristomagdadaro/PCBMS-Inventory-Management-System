@@ -2,7 +2,6 @@
 require_once dirname(__DIR__, 3) . '\php\db.php';
 require_once dirname(__DIR__, 3) . '\php\messagebox.php';
 require_once dirname(__DIR__, 3) . '\php\cleaner.php';
-require_once dirname(__DIR__, 2) . '\order\order_crud.php';
 
 class Delivery extends DB
 {
@@ -38,7 +37,7 @@ class Delivery extends DB
 
         $this->sql = "INSERT INTO `pcbms_db`.`consigned_details` (`cp_id`, `prod_id`, `particulars`, `expiry_date`, `unit_price`, `interest`, `selling_price`, `quantity`, `amount`) VALUES ('$cp_id', '{$prod_id}', '{$particulars}', '{$date_expiry}', '{$unit_price}', '{$interest}', '{$selling_price}', '{$quantity}', '{$amount}');";
         $result = parent::Insert_Query();
-        return $result['inserted_id'];
+        return $result;
     }
 
     function New_Delivery($delivery)
@@ -46,55 +45,51 @@ class Delivery extends DB
         $cp_id = $this->CreateConsignedProduct($delivery["company"], $delivery["personnel"], $delivery["date_delivery"]);
         if ($cp_id['inserted_id'] > 0) {
             $insert_history = array();
-            for ($i = 0; $i < count($delivery["product_id"]); $i++)
+            for ($i = 0; $i < count($delivery["product_id"]); $i++){
                 $result = $this->CreateConsignedDetail($delivery, $i, $cp_id['inserted_id']);
-            if ($result['inserted_id'] > 0)
-                array_push($insert_history, $result);
-            else {
-                $this->sql = "DELETE FROM `pcbms_db`.`consigned_product` WHERE  `cp_id`='{$cp_id['inserted_id']}';";
-                $result = parent::Delete_Query();
-                return $result;
+                if (!isset($result['error']) && $result['inserted_id'] > 0)
+                    array_push($insert_history, $result);
+                else {
+                    echo json_encode($result);
+                    $this->sql = "DELETE FROM `pcbms_db`.`consigned_product` WHERE  `cp_id`='{$cp_id['inserted_id']}';";
+                    $result = parent::Delete_Query();
+                    return $result;
+                }
             }
             echo json_encode($insert_history);
         }
     }
 
-    function Edit_Delivery($product, $cp_id)
+    function Edit_Delivery($product)
     {
-        if ($GLOBALS['conn']->connect_errno != 0) {
-            setmessage($GLOBALS['conn']->connect_error, 'danger', '');
-        }
+        $cp_id = $product['cp_id'];
         $delivery = json_decode(file_get_contents("delivery.cache"));
-
         if (count($delivery) > 0) {
-            $update_flag = false;
+            $company_flag = false;
             if ($delivery[0]->supp_id != $product['company']) {
                 $sql = "UPDATE `pcbms_db`.`consigned_product` SET `supp_id`='{$product['company']}' WHERE  `cp_id`='$cp_id';";
-                $result = $GLOBALS['conn']->query($sql);
-                if ($result && $GLOBALS['conn']->affected_rows > 0) {
+                $result = $this->conn->query($sql);
+                if ($result && $this->conn->affected_rows > 0) {
+                    $company_flag = true;
+                }
+            }
+
+            $count_flag = $this->CheckCountChanges($delivery, $product, $cp_id);
+            $update_flag = false;
+            for ($i = 0; $i < count($product['product_id']); $i++) {
+                $sql = "UPDATE `pcbms_db`.`consigned_details` SET `prod_id`='{$product['product_id'][$i]}',`particulars`='{$product['particulars'][$i]}',`unit_price`='{$product['unit_price'][$i]}',`interest`='{$product['interest'][$i]}',`selling_price`='{$product['selling_price'][$i]}',`quantity`='{$product['quantity'][$i]}',`amount`='{$product['amount'][$i]}',`expiry_date`='{$product['date_expiry'][$i]}' WHERE  `item_id`='{$product['item_id'][$i]}' AND `cp_id`='$cp_id';";
+                $result = $this->conn->query($sql);
+                if ($result && $this->conn->affected_rows > 0) {
                     $update_flag = true;
                 }
             }
 
-            $update_flag = $this->CheckCountChanges($delivery, $product, $cp_id);
-
-            for ($i = 0; $i < count($product['product_id']); $i++) {
-                $sql = "UPDATE `pcbms_db`.`consigned_details` SET `prod_id`='{$product['product_id'][$i]}',`particulars`='{$product['particulars'][$i]}',`unit_price`='{$product['unit_price'][$i]}',`interest`='{$product['interest'][$i]}',`selling_price`='{$product['selling_price'][$i]}',`quantity`='{$product['quantity'][$i]}',`amount`='{$product['amount'][$i]}',`expiry_date`='{$product['date_expiry'][$i]}' WHERE  `item_id`='{$product['item_id'][$i]}' AND `cp_id`='$cp_id';";
-                $result = $GLOBALS['conn']->query($sql);
-                if ($result && $GLOBALS['conn']->affected_rows > 0) {
-                    $update_flag = true;
-                } else
-                    $update_flag = false;
-            }
-
-            if ($update_flag)
-                setmessage("Updated the delivery", "success");
-            else if (!$update_flag && $GLOBALS['conn']->errno == 0)
-                setmessage("No changes made", "info");
+            if ($company_flag || $update_flag || $count_flag)
+                echo json_encode(array("affected_rows"=>1));
             else
-                setmessage("Error {$GLOBALS['conn']->errno}: {$GLOBALS['conn']->error}", "danger");
+                echo json_encode(array("affected_rows"=>0));
         } else {
-            setmessage("Error reading delivery cache file", "danger");
+           echo json_encode(array("error"=>"Error reading delivery cache file"));
         }
     }
 
@@ -102,7 +97,7 @@ class Delivery extends DB
     {
         $this->sql = "DELETE FROM `pcbms_db`.`consigned_details` WHERE  `cp_id`=$cp_id AND `item_id`=$item_id;";
         $result = parent::Delete_Query();
-        echo json_encode($result);
+        return $result['affected_rows'];
     }
 
     function CheckCountChanges($original, $update, $cp_id)
@@ -143,6 +138,16 @@ class Delivery extends DB
         $this->sql = "DELETE FROM `pcbms_db`.`consigned_details` WHERE  `cp_id`=$cp_id;";
         $result = parent::Delete_Query();
         echo json_encode($result);
+    }
+
+    static function supplier_dropdown(){
+        $sql = "SELECT * FROM `supplier`;";
+        $result =  DB::$conn_static->query($sql);
+        echo '<select name="company" id="company_form" class="form-control-sm" onchange="javascript: deliverySupplierClick(this);" style="text-overflow: ellipsis;" required>';
+        while($row = $result->fetch_assoc()){
+            echo "<option value='{$row['supp_id']}'>{$row['company']}</option>";
+        }
+        echo '</select>';
     }
 
     function get_Suppliers()
@@ -186,35 +191,28 @@ class Delivery extends DB
         $this->sql = "SELECT * FROM `get_delivery_detail` WHERE `cp_id`='$cp_id'";
         $result = parent::Select_Query();
         file_put_contents('delivery.cache', json_encode($result));
-        var_dump($result);
+        echo json_encode($result);
     }
 }
 
 $D = new Delivery();
-
-if (isset($_GET['delete'])) {
-    echo "delete";
-    return;
-    $D->Remove_Delivery($_GET['delete']);
+//echo json_encode($_POST);
+if (isset($_POST['delete'])) {
+    $D->Remove_Delivery($_POST['delete']);
 } elseif (isset($_POST['new']) && $_POST['new'] = "delivery") {
-    echo "new";
-    return;
     $D->New_Delivery($_POST);
-} elseif (isset($_POST['updatedelivery']) && isset($_GET['cp_id'])) {
-    echo "update";
-    return;
-    $D->Edit_Delivery($_POST, $_GET['cp_id']);
-} elseif (isset($_POST['company'])) {
-    $D->get_Contact_Person($_POST['company']);
-    unset($_POST['company']);
+} elseif (isset($_POST['updatedelivery'])) {
+    $D->Edit_Delivery($_POST);
+} elseif (isset($_POST['company_name'])) {
+    $D->get_Contact_Person($_POST['company_name']);
 } elseif (isset($_POST['prod_id'])) {
     $D->get_Product_Info($_POST['prod_id']);
-    unset($_POST['prod_id']);
-} elseif (isset($_POST['cp_id'])) {
-    $D->get_Consigned_Info($_POST['cp_id']);
-    unset($_POST['cp_id']);
+} elseif (isset($_POST['getconsigned'])) {
+    $D->get_Consigned_Info($_POST['getconsigned']);
 } elseif (isset($_POST['retrieve']) && $_POST['retrieve'] == 'delivery'){
     $D->Get_All_Deliveries();
-} elseif(isset($_POST['date_delivery'])){
-    var_dump($_POST);
+} elseif (isset($_POST['getdeliverysuppliers'])) {
+    $D->get_Suppliers();
+} elseif (isset($_POST['getproducts'])) {
+    $D->get_Products();
 }

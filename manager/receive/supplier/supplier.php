@@ -217,7 +217,7 @@ require_once dirname(__DIR__, 1) . '\supplier\supplier_crud.php';
                     },
                     success: function(response) {
                         console.log(JSON.stringify(response));
-                        if (Object.keys(response).length && typeof response['affected_rows'] != "undefined") {
+                        if (typeof response['error'] == "undefined") {
                             if (response['affected_rows'] > 0) {
                                 Notification('Supplier info updated', 'success');
                                 Retrieve_Suppliers();
@@ -250,7 +250,7 @@ require_once dirname(__DIR__, 1) . '\supplier\supplier_crud.php';
                     },
                     success: function(response) {
                         console.log(JSON.stringify(response));
-                        if (Object.keys(response).length && response['inserted_id'] > 0) {
+                        if (typeof response['error'] == 'undefined') {
                             Notification('New supplier created', 'success');
                             Retrieve_Suppliers();
                             $('#reset-newsupplier-form-btn').click();

@@ -114,6 +114,7 @@ User::Check_Permission(0);
             xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
             xhr.onload = function() {
                 if (this.status == 200) {
+                    console.log(this.responseText);
                     delivery = JSON.parse(this.responseText);
                     var len = Object.keys(delivery).length;
                     var remaining = 0;

@@ -43,24 +43,32 @@ require_once dirname(__DIR__, 1) . '\delivery\delivery_crud.php';
         Retrieve_Products();
     });
 
-    function DeleteProduct(cp_id) {
-        if (confirm('Confirm to remove delivery number ' + cp_id + ' permanently?')) {
-            $.ajax({
-                type: "POST",
-                url: "/manager/receive/delivery/delivery_crud.php",
-                dataType: 'json',
-                data: {
-                    delete: cp_id
-                },
-                success: function(data) {
-                    Retrieve_Products();
-                },
-                error: function(jqXHR, textStatus, errorThrown) {
-                    Notification("Error: Status: " + textStatus + " Message: " + errorThrown, 'danger');
+    function DeleteDeliveryClick(cp_id) {
+        ConfirmDelete('Confirm to remove delivery number ' + cp_id + ' permanently?', DeleteDelivery, cp_id);
+    }
+
+    function DeleteDelivery(cp_id) {
+        $.ajax({
+            type: "POST",
+            url: "/manager/receive/delivery/delivery_crud.php",
+            dataType: 'json',
+            data: {
+                delete: cp_id
+            },
+            success: function(data) {
+                console.log(data);
+                if (typeof data['error'] == 'undefined') {
+                    Notification('Delivery record was deleted', 'warning');
+                } else {
+                    Notification(data['error'], 'danger');
                 }
-            });
-        } else
-            return false;
+                Retrieve_Products();
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log(jqXHR.responseText);
+                Notification("Error: Status: " + textStatus + " Message: " + errorThrown, 'danger');
+            }
+        });
     }
 
     function Load_Datatable(data) {
@@ -95,6 +103,7 @@ require_once dirname(__DIR__, 1) . '\delivery\delivery_crud.php';
                 Load_Datatable(data);
             },
             error: function(jqXHR, textStatus, errorThrown) {
+                console.log(jqXHR.responseText);
                 Notification("Error: Status: " + textStatus + " Message: " + errorThrown, 'danger');
             }
         });
@@ -108,7 +117,7 @@ require_once dirname(__DIR__, 1) . '\delivery\delivery_crud.php';
             '<use xlink:href="#update_icon" />' +
             '</svg>' +
             '</button>' +
-            `<button type="button" class="btn btn-outline-danger d-flex align-items-center" onclick="javascript: DeleteProduct(${_cp_id});" data-toggle="tooltip" data-placement="right" data-html="true" title="<span style='color:yellow;'>Caution!</span> Remove this delivery">` +
+            `<button type="button" class="btn btn-outline-danger d-flex align-items-center" onclick="javascript: DeleteDeliveryClick(${_cp_id});" data-toggle="tooltip" data-placement="right" data-html="true" title="<span style='color:yellow;'>Caution!</span> Remove this delivery">` +
             '<svg class="bi me-2" width="16" height="16">' +
             '<use xlink:href="#delete_icon" />' +
             '</svg>' +
